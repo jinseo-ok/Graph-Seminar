@@ -1,0 +1,14 @@
+*.zip
+*.pdf
+*.DS_Store
+*.tex
+*.graph
+*.mtx
+*.txt
+*.ini
+*.cites
+*.content
+*.csv
+*.npy
+
+
