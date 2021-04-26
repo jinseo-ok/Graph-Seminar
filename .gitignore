@@ -10,5 +10,5 @@
 *.content
 *.csv
 *.npy
-
+*.ipynb_checkpoints
 
