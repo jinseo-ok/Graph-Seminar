@@ -1,11 +1,15 @@
 # Tobigs. Graph Seminar
 
+
+[![Velog Badge](https://img.shields.io/badge/tobigs.gnn1213-20c997?style=flat-square&logo=Vimeo&logoColor=white&logoWidth=10&link=https://velog.io/@tobigs-gnn1213/series)](https://velog.io/@tobigs-gnn1213/series)
+[![Gmail Badge](https://img.shields.io/badge/-Gmail-d14836?style=flat-square&logo=Gmail&logoColor=white&logoWidth=10&&link=mailto:tobigs.gnn1213@gmail.com)](mailto:tobigs.gnn1213@gmail.com)
+
 ### 1. 세미나 소개
 
 투빅스 12 & 13기로 이루어진 **그래프 세미나** 입니다.
 
-그래프 세미나는 스탠포드 대학의 **[CS224W Machine Learning with Graphs Fall 2019](http://snap.stanford.edu/class/cs224w-2019/)** 강의를 기반으로 진행합니다.
-각 강의를 정리한 블로그는 [투빅스 GNN 스터디](https://velog.io/@tobigs-gnn1213/series/Part1-CS224W)입니다. 스터디에 참여한 인원은 대부분 대학생이므로 강의 리뷰 내용에 틀린 부분이 많이 있을 것으로 생각됩니다. 틀린 부분에 대해서는 블로그 댓글로 알려주신다면 수정하도록 하겠습니다.
+그래프 세미나는 스탠포드 대학의 **[CS224W Fall 2019 : Machine Learning with Graphs](http://snap.stanford.edu/class/cs224w-2019/)** 강의를 기반으로 진행합니다.
+각 강의를 정리한 블로그는 **[투빅스 GNN 스터디](https://velog.io/@tobigs-gnn1213/series/Part1-CS224W)** 입니다. 스터디에 참여한 인원은 대부분 대학생이므로 강의 리뷰 내용에 틀린 부분이 많이 있을 것으로 생각됩니다. 틀린 부분에 대해서는 블로그 댓글로 알려주신다면 수정하도록 하겠습니다.
 
 코드 리뷰는 2가지 방향으로 진행하게 되었습니다. 먼저 **CS224W의 Homework**와 **네이버 부스트캠프 AI-Tech Week5 Graph 강의 실습 코드**를 기반으로 코드 리뷰를 진행하게 되었습니다. 네이버 부스트캠프 AI-Tech에서 제공된 실습 코드의 저작권은 네이버 커넥트 재단에 있으며, 이번 세미나에서는 교육 목적으로 실습 코드를 활용하게 되었습니다.
 
@@ -25,7 +29,7 @@
 | Nov 27, 2021 | 3 | Lecture 6 – Message Passing and Node Classification | [이재빈](https://github.com/jbeen2) |  [Velog](https://velog.io/@tobigs-gnn1213/6.-Message-Passing-and-Node-Classification) | [Video](https://www.youtube.com/watch?v=hTV44YH8Hd0&list=PL-Y8zK4dwCrQyASidb2mjj_itW2-YYx6-&index=6)
 | Mar 6, 2021 | 4 | Lecture 7 – Graph Representation Learning | 신민정 | [Velog](https://velog.io/@tobigs-gnn1213/7.-Graph-Representation-Learning) | [Video](https://www.youtube.com/watch?v=4PTOhI8IWTo&list=PL-Y8zK4dwCrQyASidb2mjj_itW2-YYx6-&index=7)
 | Mar 8, 2021 | 4 | Lecture 8 – Graph Neural Networks | [이재빈](https://github.com/jbeen2) | [Velog](https://velog.io/@tobigs-gnn1213/8.-Graph-Neural-Networks) | [Video](https://www.youtube.com/watch?v=LdK9HzBAR8c&list=PL-Y8zK4dwCrQyASidb2mjj_itW2-YYx6-&index=8)
-| Mar 8, 2021 | 4 | Lecture 9. Graph Neural Networks: Hands-on Session | [이재빈](https://github.com/jbeen2) | [Velog](https://velog.io/@tobigs-gnn1213/9.-Graph-Neural-Networks-Hands-on-Session) | [Video](https://youtu.be/X_fmiIy_YyI)
+| Mar 8, 2021 | 4 | Lecture 9 – Graph Neural Networks: Hands-on Session | [이재빈](https://github.com/jbeen2) | [Velog](https://velog.io/@tobigs-gnn1213/9.-Graph-Neural-Networks-Hands-on-Session) | [Video](https://youtu.be/X_fmiIy_YyI)
 | Mar 15, 2021 | 5 | Lecture 10 – Deep Generative Models for Graphs | 신민정 | [Velog](https://velog.io/@tobigs-gnn1213/Deep-Generative-Model-for-Graphs) | [Video](https://www.youtube.com/watch?v=enyym0s94iY&list=PL-Y8zK4dwCrQyASidb2mjj_itW2-YYx6-&index=10)
 | Mar 15, 2021 | 5 | Lecture 11 – Link Analysis : PageRank | 신윤종 | [Velog](https://velog.io/@tobigs-gnn1213/11.-Link-Analysis-PageRank) | [Video](https://www.youtube.com/watch?v=QD_NN6WUh9s&list=PL-Y8zK4dwCrQyASidb2mjj_itW2-YYx6-&index=11)
 | Mar 22, 2021 | 6 | Lecture 12 – Network Effects and Cascading Behavior | [이예진](https://github.com/cryingjin) | [Velog](https://velog.io/@tobigs-gnn1213/12.Network-Effects-and-Cascading-Behavior) | [Video](https://www.youtube.com/watch?v=50D4kA0gOPw&list=PL-Y8zK4dwCrQyASidb2mjj_itW2-YYx6-&index=12)
