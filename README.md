@@ -38,8 +38,7 @@
 | Apr 5, 2021 | 8 | Lecture 15 – Outbreak Detection in Networks | [정민준](https://github.com/minjoong507) | [Velog](https://velog.io/@tobigs-gnn1213/15.-Outbreak-Detection-in-Networks) | [Video](https://www.youtube.com/watch?v=fYOq5IX18JY&list=PL-Y8zK4dwCrQyASidb2mjj_itW2-YYx6-&index=15)
 | Apr 5, 2021 | 8 | Lecture 16 – Network Evolution | [오진석](https://github.com/jinseock95) | [Velog](https://velog.io/@tobigs-gnn1213/16.-Network-Evolution) | [Video](https://www.youtube.com/watch?v=3pramEtovus&list=PL-Y8zK4dwCrQyASidb2mjj_itW2-YYx6-&index=16)
 | Apr 12, 2021 | 9 | Lecture 17 – Reasoning over Knowledge Graphs | [신윤종](https://github.com/yoonjong12) | [Velog](https://velog.io/@tobigs-gnn1213/17.-Reasoning-over-Knowledge-Graphs) | [Video](https://www.youtube.com/watch?v=izK_u0appck&list=PL-Y8zK4dwCrQyASidb2mjj_itW2-YYx6-&index=17)
-| Apr 12, 2021 | 9 | Lecture 18 – Limitations of Graph Neural Networks | 
-[김태욱](https://github.com/taeukkkim) | [Velog](https://velog.io/@tobigs-gnn1213/Limitations-of-Graph-Neural-Networks) | [Video](https://www.youtube.com/watch?v=BqZWbRivm8g&list=PL-Y8zK4dwCrQyASidb2mjj_itW2-YYx6-&index=18)
+| Apr 12, 2021 | 9 | Lecture 18 – Limitations of Graph Neural Networks | [김태욱](https://github.com/taeukkkim) | [Velog](https://velog.io/@tobigs-gnn1213/Limitations-of-Graph-Neural-Networks) | [Video](https://www.youtube.com/watch?v=BqZWbRivm8g&list=PL-Y8zK4dwCrQyASidb2mjj_itW2-YYx6-&index=18)
 <br/>
 
 ### 3. 세미나 규칙 안내
