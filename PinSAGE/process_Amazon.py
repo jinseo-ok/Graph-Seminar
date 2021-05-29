@@ -79,9 +79,8 @@ if __name__ == '__main__':
             i += 1
         return pd.DataFrame.from_dict(df, orient='index')
 
-
-    df1 = getDF('AMAZON_FASHION.json.gz')
-    df2 = getDF('meta_AMAZON_FASHION.json.gz')
+    # USER
+    raw_user = getDF(os.path.join(directory, 'AMAZON_FASHION.json.gz'))
 
     # user matrix
     def WordCount(x):
@@ -127,9 +126,85 @@ if __name__ == '__main__':
         user = user[["user_ID", 'meanRating', 'ReviewCount', 'meanReviewLength', 'meanSummaryLength', 'meanReviewWord', 'meanSummaryWord']]
         return user
 
-    user = user_dataframe(df1)
+    user = user_dataframe(raw_user)
+
+    # ITEM
+    raw_item = getDF(os.path.join(directory, 'meta_AMAZON_FASHION.json.gz'))
+
+    # ITEM_LIST
+    item = raw_item['asin'].drop_duplicates().reset_index(drop = True).reset_index()
+    
+    # Preprocess Category
+    def prepCategory(x):
+    
+        if type(x) == list:
+            x = x[0]
+        
+        # 숫자 삭제
+        x = re.sub('[0-9(#]+', '', x)
+        
+        # split 기호 변환
+        x = re.sub('[-=+,#/\?:^$.@*\"※~%ㆍ!』\;\‘|\(\)\[\]\<\>`\'…》]', '', x)
+        
+        # 처음 ,, 삭제
+        if len(x) > 1:
+            while x[0] == ',':
+                x = x[1:]
+                
+        # 처음 in 삭제
+        if len(x) > 1:
+            if x[:2] == 'in':
+                x = x[2:]
+        
+        result = ''
+        for elem in x:
+            
+            # 공백 무조건 지우기
+            if elem == ' ' or elem == '':
+                continue
+                
+            try:
+                if result[-1] == '&':
+                    result += elem
+                    continue
+            except:
+                pass
+            
+            if ord(elem) < 97 and ord(elem) >= 65:
+                result += ','
+                result += elem
+            else:
+                result += elem
+        
+        category = ''
+        for word in result.split(','):
+            if word == 'in':
+                continue
+            word = ',' + word
+            category += word
+        
+        if len(category) > 1:
+            while category[0] == ',':
+                category = category[1:]
+        
+        category_dict = {}
+        for c in category.split(','):
+            category_dict[c] = True
+        
+        return category_dict
+    
+    item['rank'] = raw_item['rank'].fillna('null').astype(str).apply(lambda x : prepCategory(x))
+    
+    for i, arg in enumerate(item.values):
+        item.iloc[i, 2]['item_id'] = arg[0]
+
+    item = pd.DataFrame(item['rank'].to_list())
+    idx = item[['item_id']]
+    item = item.drop('item_id', axis = 1)
+    item = pd.concat([idx, item], axis = 1)
 
     ## Build heterogeneous graph
+
 
 
 
