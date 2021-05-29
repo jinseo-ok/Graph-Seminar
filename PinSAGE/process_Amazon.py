@@ -45,6 +45,7 @@
 import os, sys
 import re
 import argparse
+import gzip
 import pickle
 import pandas as pd
 import numpy as np
