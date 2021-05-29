@@ -127,7 +127,7 @@ if __name__ == '__main__':
         return user
 
     user = user_dataframe(raw_user)
-
+    print(user)
     # ITEM
     raw_item = getDF(os.path.join(directory, 'meta_AMAZON_FASHION.json.gz'))
 
@@ -202,7 +202,9 @@ if __name__ == '__main__':
     idx = item[['item_id']]
     item = item.drop('item_id', axis = 1)
     item = pd.concat([idx, item], axis = 1)
+    print(item)
 
+    sys.exit(1)
     ## Build heterogeneous graph
 
 
