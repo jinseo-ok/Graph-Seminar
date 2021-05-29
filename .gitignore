@@ -18,3 +18,5 @@
 /__pycache__
 *.pkl
 __pycache__
+.idea/
+
