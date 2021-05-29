@@ -14,4 +14,7 @@
 *.pickle
 *.gz
 *.json
-
+*.dat
+/__pycache__
+*.pkl
+__pycache__
