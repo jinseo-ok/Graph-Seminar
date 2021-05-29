@@ -11,4 +11,12 @@
 *.csv
 *.npy
 *.ipynb_checkpoints
+*.pickle
+*.gz
+*.json
+*.dat
+/__pycache__
+*.pkl
+__pycache__
+.idea/
 
