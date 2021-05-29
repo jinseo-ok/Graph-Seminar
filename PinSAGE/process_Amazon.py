@@ -48,6 +48,7 @@ import argparse
 import pickle
 import pandas as pd
 import numpy as np
+from sklearn.preprocessing import LabelEncoder
 import scipy.sparse as ssp
 import dgl
 import torch
@@ -63,24 +64,11 @@ if __name__ == '__main__':
     directory = args.directory
     output_path = args.output_path
 
-    ## Build heterogeneous graph
-
-    # Load Data
-    with open('user.pickle', 'rb') as f:
-        user = pickle.load(f)
-    with open('item.pickle', 'rb') as f:
-        item = pickle.load(f)
-    with open('rating.pickle', 'rb') as f:
-        rating = pickle.load(f)
-
-
-
-
-    # Load Data
+    # Data Load
     def parse(path):
-    g = gzip.open(path, 'rb')
-    for l in g:
-        yield json.loads(l)
+        g = gzip.open(path, 'r')
+        for l in g:
+            yield json.loads(l)
 
     def getDF(path):
         i = 0
@@ -91,14 +79,56 @@ if __name__ == '__main__':
         return pd.DataFrame.from_dict(df, orient='index')
 
 
-    ## user
+    df1 = getDF('AMAZON_FASHION.json.gz')
+    df2 = getDF('meta_AMAZON_FASHION.json.gz')
 
+    # user matrix
+    def WordCount(x):
+        try:
+            return len(x.split())
+        except:
+            return 0
 
-    ## item
-    item = getDF(os.path.join(directory, 'meta_AMAZON_FASHION.json.gz'))
-    print(item)
+    def user_dataframe(df):
 
-    sys.exit(1)
+        '''
+        user_ID : user ID
+        meanRating : 평균 평점
+        ReviewCount : 리뷰 개수
+
+        meanReviewLength : 평균 리뷰 길이
+        meanSummaryLength : 평균 Summary 길이
+        meanReviewWord : 평균 리뷰 단어 개수
+        meanSummaryWord : 평균 Summary 단어 개수
+        '''
+
+        le = LabelEncoder()
+        df["reviewerID"] = le.fit_transform(df["reviewerID"])
+
+        # preprocess
+        df["reviewTextLength"] = df["reviewText"].apply(lambda x: len(str(x)))
+        df["summaryLength"] = df["summary"].apply(lambda x: len(str(x)))
+        df["reviewTextCount"] = df["reviewText"].apply(lambda x: WordCount(x))
+        df["summaryCount"] = df["summary"].apply(lambda x: WordCount(x))
+
+        # user dataframe
+        user = df.groupby('reviewerID').agg({
+            'overall': [('meanRating', np.mean)],
+            'reviewTextLength': [('meanReviewLength', np.mean)],
+            'summaryLength': [('meanSummaryLength', np.mean)],
+            'reviewTextCount': [('meanReviewWord', np.mean), ('ReviewCount', 'count')],
+            'summaryCount': [('meanSummaryWord', np.mean)],
+        }).reset_index()
+        user.columns = user.columns.get_level_values(level=1)
+        user.columns = ["user_ID", 'meanRating', 'meanReviewLength', 'meanSummaryLength', 'meanReviewWord',
+                        'ReviewCount', 'meanSummaryWord']
+
+        user = user[["user_ID", 'meanRating', 'ReviewCount', 'meanReviewLength', 'meanSummaryLength', 'meanReviewWord', 'meanSummaryWord']]
+        return user
+
+    user = user_dataframe(df1)
+
+    ## Build heterogeneous graph
 
 
 
@@ -110,6 +140,7 @@ if __name__ == '__main__':
     graph_builder.add_binary_relations(rating, 'item_id', 'user_id', 'purchased-by')
 
     g = graph_builder.build()
+
 
     # Assign
 
