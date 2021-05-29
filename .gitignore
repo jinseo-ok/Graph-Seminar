@@ -11,4 +11,7 @@
 *.csv
 *.npy
 *.ipynb_checkpoints
+*.pickle
+*.gz
+*.json
 
