@@ -48,6 +48,7 @@ import argparse
 import json
 import gzip
 import pickle
+import joblib
 
 import numpy as np
 import pandas as pd
@@ -209,7 +210,7 @@ if __name__ == '__main__':
     items = (raw_item[['asin', 'rank']].drop_duplicates('asin')
                                       .rename(columns = {'asin' : 'item_id'})
                                       ) # 중복 제거
-    item2idx = {k : v for v, k in enumerate(items['item_ID'].unique())}
+    item2idx = {k : v for v, k in enumerate(items['item_id'].unique())}
     items['item_id'] = items['item_id'].map(item2idx) 
 
     items['rank'] = items['rank'].fillna('null').astype(str).apply(lambda x : prep_category(x))
@@ -249,6 +250,7 @@ if __name__ == '__main__':
     items = items[items['item_id'].isin(distinct_items_in_ratings)]
 
     # Group the movie features into genres (a vector), year (a category), title (a string)
+
     category_columns = items.columns.drop('item_id')
     items[category_columns] = items[category_columns].fillna(False).astype('bool')
     # movies_categorical = items.drop('title', axis=1)
@@ -263,34 +265,28 @@ if __name__ == '__main__':
 
     g = graph_builder.build()
 
-    # item features
-    # Group the movie features into genres (a vector), year (a category), title (a string)
-    cat_columns = item.columns.drop(['item_id'])
-    item[cat_columns] = item[cat_columns].fillna(False).astype('bool')
-    # item_categorical = item.drop('title', axis=1)
-
     # Assign features -> feature 수정중 0529
     # Note that variable-sized features such as texts or images are handled elsewhere.
-    g.nodes['user'].data['meanRating'] = torch.LongTensor(user['meanRating'].values)    # .cat.codes.values
-    g.nodes['user'].data['ReviewCount'] = torch.LongTensor(user['ReviewCount'].values)
-    g.nodes['user'].data['meanSummaryLength'] = torch.LongTensor(user['meanSummaryLength'].values)
-    g.nodes['user'].data['meanReviewWord'] = torch.LongTensor(user['meanReviewWord'].values)
-    g.nodes['user'].data['meanSummaryWord'] = torch.LongTensor(user['meanSummaryWord'].values)
+    g.nodes['user'].data['meanRating'] = torch.LongTensor(users['meanRating'].values)    # .cat.codes.values
+    g.nodes['user'].data['ReviewCount'] = torch.LongTensor(users['ReviewCount'].values)
+    g.nodes['user'].data['meanSummaryLength'] = torch.LongTensor(users['meanSummaryLength'].values)
+    g.nodes['user'].data['meanReviewWord'] = torch.LongTensor(users['meanReviewWord'].values)
+    g.nodes['user'].data['meanSummaryWord'] = torch.LongTensor(users['meanSummaryWord'].values)
 
     # g.nodes['item'].data['year'] = torch.LongTensor(movies['year'].cat.codes.values)
-    g.nodes['item'].data['cat'] = torch.FloatTensor(item[cat_columns].values)
+    g.nodes['item'].data['cat'] = torch.FloatTensor(items[category_columns].values)
 
-    g.edges['purchased'].data['rating'] = torch.LongTensor(rating['rating'].values)
-    g.edges['purchased'].data['timestamp'] = torch.LongTensor(rating['timestamp'].values)
-    g.edges['purchased-by'].data['rating'] = torch.LongTensor(rating['rating'].values)
-    g.edges['purchased-by'].data['timestamp'] = torch.LongTensor(rating['timestamp'].values)
+    g.edges['purchased'].data['rating'] = torch.LongTensor(ratings['rating'].values)
+    g.edges['purchased'].data['timestamp'] = torch.LongTensor(ratings['timestamp'].values)
+    g.edges['purchased-by'].data['rating'] = torch.LongTensor(ratings['rating'].values)
+    g.edges['purchased-by'].data['timestamp'] = torch.LongTensor(ratings['timestamp'].values)
 
     
     # ======================================================================
     #   Train-validation-test split -> 수정아직 안함
     # ======================================================================
-    # This is a little bit tricky as we want to select the last interaction for test, and the
-    # second-to-last interaction for validation.
+    # rating의 timestamp 기준, 각 유저의 마지막 평점을 test로 / 마지막 바로 전 평점을 valid로
+    # from data_utils.py
     train_indices, val_indices, test_indices = train_test_split_by_time(ratings, 'timestamp', 'user_id')
 
     # Build the graph with training interactions only.
@@ -302,7 +298,7 @@ if __name__ == '__main__':
 
         ## Build title set
 
-        movie_textual_dataset = {'title': movies['title'].values}
+        # movie_textual_dataset = {'title': movies['title'].values}
 
         # The model should build their own vocabulary and process the texts.  Here is one example
         # of using torchtext to pad and numericalize a batch of strings.
@@ -314,17 +310,17 @@ if __name__ == '__main__':
 
         ## Dump the graph and the datasets
 
-        dataset = {
-            'train-graph': train_g,
-            'val-matrix': val_matrix,
-            'test-matrix': test_matrix,
-            'item-texts': movie_textual_dataset,
-            'item-images': None,
-            'user-type': 'user',
-            'item-type': 'movie',
-            'user-to-item-type': 'watched',
-            'item-to-user-type': 'watched-by',
-            'timestamp-edge-column': 'timestamp'}
+        # dataset = {
+        #     'train-graph': train_g,
+        #     'val-matrix': val_matrix,
+        #     'test-matrix': test_matrix,
+        #     'item-texts': movie_textual_dataset,
+        #     'item-images': None,
+        #     'user-type': 'user',
+        #     'item-type': 'movie',
+        #     'user-to-item-type': 'watched',
+        #     'item-to-user-type': 'watched-by',
+        #     'timestamp-edge-column': 'timestamp'}
 
     #     with open(output_path, 'wb') as f:
     #         pickle.dump(dataset, f)
