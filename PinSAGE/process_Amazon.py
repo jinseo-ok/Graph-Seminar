@@ -85,17 +85,17 @@ if __name__ == '__main__':
     # ======================================================================
     #   USER
     # ======================================================================
-    raw_user = getDF(os.path.join(directory, 'AMAZON_FASHION.json.gz'))
+    raw_df = getDF(os.path.join(directory, 'AMAZON_FASHION.json.gz'))
 
-    # user matrix
+    # 리뷰 단어 count
     def WordCount(x):
         try:
             return len(x.split())
         except:
             return 0
 
-    le = LabelEncoder()  # label encoder 정의
-    def user_dataframe(df):
+    # le = LabelEncoder()  # label encoder 정의
+    def prep_user(df):
 
         '''
         user_ID : user ID
@@ -108,7 +108,7 @@ if __name__ == '__main__':
         meanSummaryWord : 평균 Summary 단어 개수
         '''
 
-        df["reviewerID"] = le.fit_transform(df["reviewerID"])
+        # df["reviewerID"] = le.fit_transform(df["reviewerID"])
 
         # preprocess
         df["reviewTextLength"] = df["reviewText"].apply(lambda x: len(str(x)))
@@ -116,7 +116,7 @@ if __name__ == '__main__':
         df["reviewTextCount"] = df["reviewText"].apply(lambda x: WordCount(x))
         df["summaryCount"] = df["summary"].apply(lambda x: WordCount(x))
 
-        # user dataframe
+        # user aggregation
         user = df.groupby('reviewerID').agg({
             'overall': [('meanRating', np.mean)],
             'reviewTextLength': [('meanReviewLength', np.mean)],
@@ -130,28 +130,29 @@ if __name__ == '__main__':
 
         user = user[["user_ID", 'meanRating', 'ReviewCount', 'meanReviewLength', 'meanSummaryLength', 'meanReviewWord', 'meanSummaryWord']]
         return user
-
-    user = user_dataframe(raw_user)
-    # print(user)
+    
+    # USER_LIST
+    user = prep_user(raw_df)
+    user2idx = {k : v for v, k in enumerate(user['user_ID'].unique())}
+    user['user_ID'] = user['user_ID'].map(user2idx)
+    print(user)
 
     # ======================================================================
     #   ITEM
     # ======================================================================
     raw_item = getDF(os.path.join(directory, 'meta_AMAZON_FASHION.json.gz'))
 
-    # ITEM_LIST
-    item = raw_item['asin'].drop_duplicates().reset_index(drop = True).reset_index()
-    
     # Preprocess Category
-    def prepCategory(x):
-    
+    def prep_category(x):
+        
+        # list value 처리
         if type(x) == list:
             x = x[0]
         
         # 숫자 삭제
         x = re.sub('[0-9(#]+', '', x)
         
-        # split 기호 변환
+        # 특수문자 삭제
         x = re.sub('[-=+,#/\?:^$.@*\"※~%ㆍ!』\;\‘|\(\)\[\]\<\>`\'…》]', '', x)
         
         # 처음 ,, 삭제
@@ -164,13 +165,15 @@ if __name__ == '__main__':
             if x[:2] == 'in':
                 x = x[2:]
         
+        # 대문자를 기준으로 카테고리 나누기
         result = ''
         for elem in x:
             
             # 공백 무조건 지우기
             if elem == ' ' or elem == '':
                 continue
-                
+            
+            # &가 있으면 앞뒤 같은 카테고리로
             try:
                 if result[-1] == '&':
                     result += elem
@@ -178,136 +181,146 @@ if __name__ == '__main__':
             except:
                 pass
             
+            # 대문자 발견되면 , 로 카테고리 구분하기
             if ord(elem) < 97 and ord(elem) >= 65:
                 result += ','
                 result += elem
             else:
                 result += elem
         
+        # in 이라는 단어 삭제
         category = ''
         for word in result.split(','):
-            if word == 'in':
+            if word.strip() == 'in':
                 continue
-            word = ',' + word
+            word = ',' + word.strip()
             category += word
         
+        # 처음 , 삭제
         if len(category) > 1:
             while category[0] == ',':
                 category = category[1:]
         
+        # 딕셔너리로 반환
         category_dict = {}
         for c in category.split(','):
             category_dict[c] = True
         
         return category_dict
     
-    item['rank'] = raw_item['rank'].fillna('null').astype(str).apply(lambda x : prepCategory(x))
-    item2idx = {k:v for k, v in item[['item_id', 'asin']].values}    # item2idx 추가 -> rating에 사용
+
+    # ITEM_LIST
+    item = (raw_item[['asin', 'rank']].drop_duplicates('asin')
+                                      .rename(columns = {'asin' : 'item_ID'})
+                                      ) # 중복 제거
+    item2idx = {k : v for v, k in enumerate(item['item_ID'].unique())}
+    item['item_ID'] = item['item_ID'].map(item2idx) 
+
+    item['rank'] = item['rank'].fillna('null').astype(str).apply(lambda x : prep_category(x))
     
     for i, arg in enumerate(item.values):
         item.iloc[i, 2]['item_id'] = arg[0]
 
     item = pd.DataFrame(item['rank'].to_list())
     idx = item[['item_id']]
-    item = item.drop('item_id', axis = 1)
-    item = pd.concat([idx, item], axis = 1)
-    # print(item)
+    item = pd.concat([idx, item.drop('item_id', axis = 1)], axis = 1)
+    print(item)
 
-    sys.exit(1)
 
     # ======================================================================
     #   RATING
     # ======================================================================
-    def rating_preb(raw_data,item2idx):
+    def prep_rating(df, user2idx, item2idx):
         '''
-        raw_data, item2idx 받아서 rating 테이블 만든다.
+        df (user-item 행렬), user2idx & item2idx -> encoding rating matrix 
         '''
-        rating = raw_data[['reviewerID','asin','overall','unixReviewTime']]
-        rating['user_id'] = le.transform(rating['reviewerID'])    # user2idx도 가능
-        rating['asin'].map(item2idx)
-        rating.columns = ['user_id','item_id','rating','timestamp']
+        rating = df[['reviewerID', 'asin', 'overall', 'unixReviewTime']]
+        rating['reviewerID'] = rating['reviewerID'].map(user2idx)
+        rating['asin'] = rating['asin'].map(item2idx)
+        rating.columns = ['user_id', 'item_id', 'rating', 'timestamp']
 
         return rating
     
-    rating = rating_preb(raw_data,item2idx)
-
-
+    rating = prep_rating(raw_df, user2idx, item2idx)
+    print(rating)
+    
+    sys.exit(1)
     # ======================================================================
     #   Build heterogeneous graph
     # ======================================================================
    
     # Graph Build
-    graph_builder = PandasGraphBuilder()
-    graph_builder.add_entities(user, 'user_id', 'user')
-    graph_builder.add_entities(item, 'item_id', 'item')
-    graph_builder.add_binary_relations(rating, 'user_id', 'item_id', 'purchased')
-    graph_builder.add_binary_relations(rating, 'item_id', 'user_id', 'purchased-by')
+    # graph_builder = PandasGraphBuilder()
+    # graph_builder.add_entities(user, 'user_id', 'user')
+    # graph_builder.add_entities(item, 'item_id', 'item')
+    # graph_builder.add_binary_relations(rating, 'user_id', 'item_id', 'purchased')
+    # graph_builder.add_binary_relations(rating, 'item_id', 'user_id', 'purchased-by')
 
-    g = graph_builder.build()
+    # g = graph_builder.build()
 
-    # item features
-    # Group the movie features into genres (a vector), year (a category), title (a string)
-    cat_columns = item.columns.drop(['item_id'])
-    item[cat_columns] = item[cat_columns].fillna(False).astype('bool')
-    # item_categorical = item.drop('title', axis=1)
+    # # item features
+    # # Group the movie features into genres (a vector), year (a category), title (a string)
+    # cat_columns = item.columns.drop(['item_id'])
+    # item[cat_columns] = item[cat_columns].fillna(False).astype('bool')
+    # # item_categorical = item.drop('title', axis=1)
 
-    # Assign features -> feature 수정중 0529
-    # Note that variable-sized features such as texts or images are handled elsewhere.
-    g.nodes['user'].data['meanRating'] = torch.LongTensor(user['meanRating'].values)    # .cat.codes.values
-    g.nodes['user'].data['ReviewCount'] = torch.LongTensor(user['ReviewCount'].values)
-    g.nodes['user'].data['meanSummaryLength'] = torch.LongTensor(user['meanSummaryLength'].values)
-    g.nodes['user'].data['meanReviewWord'] = torch.LongTensor(user['meanReviewWord'].values)
-    g.nodes['user'].data['meanSummaryWord'] = torch.LongTensor(user['meanSummaryWord'].values)
+    # # Assign features -> feature 수정중 0529
+    # # Note that variable-sized features such as texts or images are handled elsewhere.
+    # g.nodes['user'].data['meanRating'] = torch.LongTensor(user['meanRating'].values)    # .cat.codes.values
+    # g.nodes['user'].data['ReviewCount'] = torch.LongTensor(user['ReviewCount'].values)
+    # g.nodes['user'].data['meanSummaryLength'] = torch.LongTensor(user['meanSummaryLength'].values)
+    # g.nodes['user'].data['meanReviewWord'] = torch.LongTensor(user['meanReviewWord'].values)
+    # g.nodes['user'].data['meanSummaryWord'] = torch.LongTensor(user['meanSummaryWord'].values)
 
-    # g.nodes['item'].data['year'] = torch.LongTensor(movies['year'].cat.codes.values)
-    g.nodes['item'].data['cat'] = torch.FloatTensor(item[cat_columns].values)
+    # # g.nodes['item'].data['year'] = torch.LongTensor(movies['year'].cat.codes.values)
+    # g.nodes['item'].data['cat'] = torch.FloatTensor(item[cat_columns].values)
 
-    g.edges['purchased'].data['rating'] = torch.LongTensor(rating['rating'].values)
-    g.edges['purchased'].data['timestamp'] = torch.LongTensor(rating['timestamp'].values)
-    g.edges['purchased-by'].data['rating'] = torch.LongTensor(rating['rating'].values)
-    g.edges['purchased-by'].data['timestamp'] = torch.LongTensor(rating['timestamp'].values)
+    # g.edges['purchased'].data['rating'] = torch.LongTensor(rating['rating'].values)
+    # g.edges['purchased'].data['timestamp'] = torch.LongTensor(rating['timestamp'].values)
+    # g.edges['purchased-by'].data['rating'] = torch.LongTensor(rating['rating'].values)
+    # g.edges['purchased-by'].data['timestamp'] = torch.LongTensor(rating['timestamp'].values)
 
     
-    # ======================================================================
-    #   Train-validation-test split -> 수정아직 안함
-    # ======================================================================
-    # This is a little bit tricky as we want to select the last interaction for test, and the
-    # second-to-last interaction for validation.
-    train_indices, val_indices, test_indices = train_test_split_by_time(ratings, 'timestamp', 'user_id')
+    # # ======================================================================
+    # #   Train-validation-test split -> 수정아직 안함
+    # # ======================================================================
+    # # This is a little bit tricky as we want to select the last interaction for test, and the
+    # # second-to-last interaction for validation.
+    # train_indices, val_indices, test_indices = train_test_split_by_time(ratings, 'timestamp', 'user_id')
 
-    # Build the graph with training interactions only.
-    train_g = build_train_graph(g, train_indices, 'user', 'movie', 'watched', 'watched-by')
-    assert train_g.out_degrees(etype='watched').min() > 0
+    # # Build the graph with training interactions only.
+    # train_g = build_train_graph(g, train_indices, 'user', 'movie', 'watched', 'watched-by')
+    # assert train_g.out_degrees(etype='watched').min() > 0
 
-    # Build the user-item sparse matrix for validation and test set.
-    val_matrix, test_matrix = build_val_test_matrix(g, val_indices, test_indices, 'user', 'movie', 'watched')
+    # # Build the user-item sparse matrix for validation and test set.
+    # val_matrix, test_matrix = build_val_test_matrix(g, val_indices, test_indices, 'user', 'movie', 'watched')
 
-        ## Build title set
+    #     ## Build title set
 
-        movie_textual_dataset = {'title': movies['title'].values}
+    #     movie_textual_dataset = {'title': movies['title'].values}
 
-        # The model should build their own vocabulary and process the texts.  Here is one example
-        # of using torchtext to pad and numericalize a batch of strings.
-        #     field = torchtext.data.Field(include_lengths=True, lower=True, batch_first=True)
-        #     examples = [torchtext.data.Example.fromlist([t], [('title', title_field)]) for t in texts]
-        #     titleset = torchtext.data.Dataset(examples, [('title', title_field)])
-        #     field.build_vocab(titleset.title, vectors='fasttext.simple.300d')
-        #     token_ids, lengths = field.process([examples[0].title, examples[1].title])
+    #     # The model should build their own vocabulary and process the texts.  Here is one example
+    #     # of using torchtext to pad and numericalize a batch of strings.
+    #     #     field = torchtext.data.Field(include_lengths=True, lower=True, batch_first=True)
+    #     #     examples = [torchtext.data.Example.fromlist([t], [('title', title_field)]) for t in texts]
+    #     #     titleset = torchtext.data.Dataset(examples, [('title', title_field)])
+    #     #     field.build_vocab(titleset.title, vectors='fasttext.simple.300d')
+    #     #     token_ids, lengths = field.process([examples[0].title, examples[1].title])
 
-        ## Dump the graph and the datasets
+    #     ## Dump the graph and the datasets
 
-        dataset = {
-            'train-graph': train_g,
-            'val-matrix': val_matrix,
-            'test-matrix': test_matrix,
-            'item-texts': movie_textual_dataset,
-            'item-images': None,
-            'user-type': 'user',
-            'item-type': 'movie',
-            'user-to-item-type': 'watched',
-            'item-to-user-type': 'watched-by',
-            'timestamp-edge-column': 'timestamp'}
+    #     dataset = {
+    #         'train-graph': train_g,
+    #         'val-matrix': val_matrix,
+    #         'test-matrix': test_matrix,
+    #         'item-texts': movie_textual_dataset,
+    #         'item-images': None,
+    #         'user-type': 'user',
+    #         'item-type': 'movie',
+    #         'user-to-item-type': 'watched',
+    #         'item-to-user-type': 'watched-by',
+    #         'timestamp-edge-column': 'timestamp'}
 
-    #     with open(output_path, 'wb') as f:
-    #         pickle.dump(dataset, f)
+    # #     with open(output_path, 'wb') as f:
+    # #         pickle.dump(dataset, f)
 
