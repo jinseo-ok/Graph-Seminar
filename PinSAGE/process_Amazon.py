@@ -45,10 +45,14 @@
 import os, sys
 import re
 import argparse
+
+import json
 import gzip
 import pickle
-import pandas as pd
+
 import numpy as np
+import pandas as pd
+
 from sklearn.preprocessing import LabelEncoder
 import scipy.sparse as ssp
 import dgl
@@ -60,10 +64,10 @@ from data_utils import *
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('directory', type=str)
-    parser.add_argument('output_path', type=str)
+    # parser.add_argument('output_path', type=str)
     args = parser.parse_args()
     directory = args.directory
-    output_path = args.output_path
+    # output_path = args.output_path
 
     # Data Load
     def parse(path):
