@@ -250,7 +250,6 @@ if __name__ == '__main__':
     items = items[items['item_id'].isin(distinct_items_in_ratings)]
 
     # Group the movie features into genres (a vector), year (a category), title (a string)
-
     category_columns = items.columns.drop('item_id')
     items[category_columns] = items[category_columns].fillna(False).astype('bool')
     # movies_categorical = items.drop('title', axis=1)

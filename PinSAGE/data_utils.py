@@ -28,6 +28,11 @@ def train_test_split_by_time(df, timestamp, user):
            df['val_mask'].to_numpy().nonzero()[0], \
            df['test_mask'].to_numpy().nonzero()[0]
 
+def train_test_split_by_time(df, timestamp, user):
+
+    return
+
+
 def build_train_graph(g, train_indices, utype, itype, etype, etype_rev):
     train_g = g.edge_subgraph(
         {etype: train_indices, etype_rev: train_indices},
