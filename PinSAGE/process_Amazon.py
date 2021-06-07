@@ -282,9 +282,10 @@ if __name__ == '__main__':
 
     
     # ======================================================================
-    #   Train-validation-test split -> 수정아직 안함
+    #   Train-validation-test split
     # ======================================================================
     # rating의 timestamp 기준, 각 유저의 마지막 평점을 test로 / 마지막 바로 전 평점을 valid로
+    # train_indices, val_indices, test_indices 은 index 로 저장되어 있음
     # from data_utils.py
     train_indices, val_indices, test_indices = train_test_split_by_time(ratings, 'timestamp', 'user_id')
 
@@ -295,32 +296,32 @@ if __name__ == '__main__':
     # Build the user-item sparse matrix for validation and test set.
     val_matrix, test_matrix = build_val_test_matrix(g, val_indices, test_indices, 'user', 'movie', 'watched')
 
-        ## Build title set
+    # Build title set
 
-        # movie_textual_dataset = {'title': movies['title'].values}
+    movie_textual_dataset = {'title': movies['title'].values}
 
-        # The model should build their own vocabulary and process the texts.  Here is one example
-        # of using torchtext to pad and numericalize a batch of strings.
-        #     field = torchtext.data.Field(include_lengths=True, lower=True, batch_first=True)
-        #     examples = [torchtext.data.Example.fromlist([t], [('title', title_field)]) for t in texts]
-        #     titleset = torchtext.data.Dataset(examples, [('title', title_field)])
-        #     field.build_vocab(titleset.title, vectors='fasttext.simple.300d')
-        #     token_ids, lengths = field.process([examples[0].title, examples[1].title])
+    # The model should build their own vocabulary and process the texts.  Here is one example
+    # of using torchtext to pad and numericalize a batch of strings.
+    #     field = torchtext.data.Field(include_lengths=True, lower=True, batch_first=True)
+    #     examples = [torchtext.data.Example.fromlist([t], [('title', title_field)]) for t in texts]
+    #     titleset = torchtext.data.Dataset(examples, [('title', title_field)])
+    #     field.build_vocab(titleset.title, vectors='fasttext.simple.300d')
+    #     token_ids, lengths = field.process([examples[0].title, examples[1].title])
 
-        ## Dump the graph and the datasets
+    # Dump the graph and the datasets
 
-        # dataset = {
-        #     'train-graph': train_g,
-        #     'val-matrix': val_matrix,
-        #     'test-matrix': test_matrix,
-        #     'item-texts': movie_textual_dataset,
-        #     'item-images': None,
-        #     'user-type': 'user',
-        #     'item-type': 'movie',
-        #     'user-to-item-type': 'watched',
-        #     'item-to-user-type': 'watched-by',
-        #     'timestamp-edge-column': 'timestamp'}
+    dataset = {
+        'train-graph': train_g,
+        'val-matrix': val_matrix,
+        'test-matrix': test_matrix,
+        'item-texts': movie_textual_dataset,
+        'item-images': None,
+        'user-type': 'user',
+        'item-type': 'movie',
+        'user-to-item-type': 'watched',
+        'item-to-user-type': 'watched-by',
+        'timestamp-edge-column': 'timestamp'}
 
-    #     with open(output_path, 'wb') as f:
-    #         pickle.dump(dataset, f)
+    with open(output_path, 'wb') as f:
+        pickle.dump(dataset, f)
 
