@@ -63,10 +63,10 @@ from data_utils import *
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('directory', type=str)
-    # parser.add_argument('output_path', type=str)
+    parser.add_argument('output_path', type=str)
     args = parser.parse_args()
     directory = args.directory
-    # output_path = args.output_path
+    output_path = args.output_path
 
     # Data Load
     def parse(path):
@@ -298,7 +298,8 @@ if __name__ == '__main__':
 
     # Build title set
 
-    movie_textual_dataset = {'title': movies['title'].values}
+    # Amazon item의 title은 사용하지 않는걸로 일단 보류..
+    # movie_textual_dataset = {'title': item['title'].values}
 
     # The model should build their own vocabulary and process the texts.  Here is one example
     # of using torchtext to pad and numericalize a batch of strings.
@@ -314,7 +315,7 @@ if __name__ == '__main__':
         'train-graph': train_g,
         'val-matrix': val_matrix,
         'test-matrix': test_matrix,
-        'item-texts': movie_textual_dataset,
+        # 'item-texts': movie_textual_dataset,
         'item-images': None,
         'user-type': 'user',
         'item-type': 'movie',
